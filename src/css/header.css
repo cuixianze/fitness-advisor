@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1f2937; /* 다크 그레이 */
+  --color-accent: #10b981;  /* 에메랄드 */
+  --color-background: #ffffff;
+  --font-display: 'Inter', sans-serif;
+  --spacing: 0.25rem;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-display);
+    background-color: var(--color-background);
+    color: var(--color-primary);
+  }
+}
+
+@layer components {
+  .header {
+    @apply grid grid-cols-3 items-center px-6 py-6 bg-white shadow-md;
+  }
+
+  .header-left {
+    @apply flex items-center justify-start font-semibold;
+  }
+
+  .header-center {
+    @apply flex items-center justify-center;
+  }
+
+  .header-right {
+    @apply flex items-center justify-end;
+  }
+
+  .nav-link {
+    @apply text-lg font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 px-3 py-2 rounded-md transition-colors duration-200;
+  }
+
+  .btn {
+    @apply px-4 py-2 text-white rounded-md font-semibold transition-colors duration-300;
+    background-color: var(--color-accent);
+  }
+
+  .btn:hover {
+    background-color: #059669;
+  }
+
+  .logo {
+    @apply w-9 h-9 rounded-full;
+  }
+}
