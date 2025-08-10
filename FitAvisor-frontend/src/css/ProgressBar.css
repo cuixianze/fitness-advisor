@@ -1,0 +1,32 @@
+
+
+ .progress-container {
+  @apply flex justify-between items-center w-4/5 max-w-lg mx-auto my-10 relative;
+  font-family: sans-serif;
+}
+
+.step-item {
+  @apply flex flex-col items-center relative flex-1;
+}
+
+.step-item::before {
+  content: "";
+  @apply absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 -z-10;
+  transform: translateY(-50%);
+}
+
+.step-circle {
+  @apply w-10 h-10 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center text-gray-500 font-bold transition-colors duration-300;
+}
+
+.step-circle.active {
+  @apply bg-green-500 border-green-500 text-white;
+}
+
+.step-circle.completed {
+  @apply bg-green-500 border-green-500 text-white;
+}
+
+.step-name {
+  @apply text-sm text-gray-600 mt-2;
+}
