@@ -2,11 +2,10 @@ import { useForm, FormProvider } from "react-hook-form";
 import { Outlet } from "react-router-dom";
 import ProgressBar from "../progressBar";
 
-
 export default function Diet(nextPath = String) {
   const dietStep = useForm({
     defaultValues: {
-      bodyFat: "",
+      gender: "",
       exerciseNumber: "",
       goToExercise: [],
       lastExercise: "",
@@ -18,10 +17,8 @@ export default function Diet(nextPath = String) {
 
   return (
     <FormProvider {...dietStep}>
-      <ProgressBar /> 
+      <ProgressBar />
       <Outlet />
-    
-      
     </FormProvider>
   );
 }

@@ -1,7 +1,6 @@
 import { useFormContext } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useState } from "react";
 
 export default function DietStep1() {
   const exerciseTime = [
@@ -10,58 +9,27 @@ export default function DietStep1() {
     { id: "dietStepId3", label: "1시간 이상", value: "1시간 이상" },
   ];
 
-  const [formData, setFormData] = useState(false);
+  const navigate = useNavigate();
 
-  // const nextDietStep2 = useNavigate();
-
-  const prevStep = useNavigate();
-
-  const onSubmit = async () => {
-    // 1) 현재 폼의 모든 값 가져오기
-    const values = getValues();
-    // const formServerData = getValues();
-    const formServerData = {
-      userId: "u-1233", // 예시, 로그인 사용자 ID
-      experienceLevel: values.exerciseLevel,
-      goals: values.goals || [],
-      availableDays: values.availableDays || [],
-      injuriesOrLimitations: values.injuriesOrLimitations || [],
-      preferredEnvironment: values.preferredEnvironment,
-      exerciseTime: values.exerciseTime,
-    };
-    // 디버깅: 제출 전에 콘솔로 확인해보세요
-    console.log("formData", formServerData);
-
+  const onSubmit = async (formData) => {
+    // 2) formData를 post로 보내기
     try {
-      setFormData(true);
-
-      // 2) axios 인스턴스로 POST 전송
-      const res = await axios.post(
-        "http://localhost:4000/api/generate-workout"
-      );
-      console.log(res.data);
-
-      // 3) 성공 처리: 결과 페이지로 이동하거나 모달로 보여주기
-      // 여기서는 결과 페이지로 navigate 하면서 상태로 전달
-      // navigate("/diet", { state: { plan: result } });
+      const res = await axios.post(`http://localhost:8080/workouts/`, formData);
+      console.log("사용자 데이터", res.data);
+      navigate("/dietLastStep", { state: { mock: res.data } });
     } catch (err) {
-      console.error("notfound", err);
+      console.error("NotFound!!!", err);
     }
   };
 
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = useFormContext();
 
-  // const onValid = (data) => {
-  //   nextDietStep2("/diet/dietStep6");
-  // };
-
   const handlePrevClick = () => {
-    prevStep("/diet/dietStep6");
+    navigate("/diet/dietStep6");
   };
 
   const onError = (errors) => {
@@ -70,7 +38,7 @@ export default function DietStep1() {
 
   return (
     <form
-      onSubmit={handleSubmit(onError)}
+      onSubmit={handleSubmit(onSubmit, onError)}
       className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow"
     >
       <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
@@ -101,10 +69,9 @@ export default function DietStep1() {
       <div className="mt-6 flex gap-4">
         <button
           type="submit"
-          onClick={onSubmit}
           className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
         >
-          next
+          제출
         </button>
         <button
           type="button"
