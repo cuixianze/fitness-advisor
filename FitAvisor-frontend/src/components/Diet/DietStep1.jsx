@@ -8,7 +8,7 @@ export default function DietStep1() {
     
   ];
 
-  const nextDietStep2 = useNavigate();
+  const navigate = useNavigate();
 
   const {
     register,
@@ -17,7 +17,7 @@ export default function DietStep1() {
   } = useFormContext();
 
   const onValid = (data) => {
-    nextDietStep2("/diet/dietStep2");
+    navigate("/diet/dietStep2");
   };
 
   const onError = (errors) => {
@@ -48,8 +48,8 @@ return (
         </label>
       ))}
     </div>
-    {errors.bodyFat && (
-      <p className="text-red-500 text-sm mt-2">{errors.bodyFat.message}</p>
+    {errors.gender && (
+      <p className="text-red-500 text-sm mt-2">{errors.gender.message}</p>
     )}
     <button
       type="submit"

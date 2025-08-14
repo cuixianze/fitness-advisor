@@ -2,31 +2,46 @@ import { useFormContext } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-export default function DietStep1() {
+export default function DietStep7() {
   const exerciseTime = [
     { id: "dietStepId1", label: "30분", value: "30분" },
     { id: "dietStepId2", label: "30분~1시간", value: "30분~1시간" },
     { id: "dietStepId3", label: "1시간 이상", value: "1시간 이상" },
   ];
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useFormContext();
+
   const navigate = useNavigate();
 
   const onSubmit = async (formData) => {
-    // 2) formData를 post로 보내기
+    // 2) formData를 post로 보내고 로컬스토리지에 저장된 데이터는 삭제하고 페이지 이동 로직
     try {
+      console.log("try 블록진입");
       const res = await axios.post(`http://localhost:8080/workouts/`, formData);
       console.log("사용자 데이터", res.data);
+      localStorage.removeItem("saveFormData");
+      console.log("로컬스토리지 삭제");
+      reset({
+        gender: "",
+        exerciseNumber: "",
+        goToExercise: [],
+        lastExercise: "",
+        exerciseLevel: "",
+        exercisePart: "",
+        exerciseTime: "",
+      });
+      console.log("rhf 초기화");
       navigate("/dietLastStep", { state: { mock: res.data } });
+      console.log("페이지 이동");
     } catch (err) {
       console.error("NotFound!!!", err);
     }
   };
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useFormContext();
 
   const handlePrevClick = () => {
     navigate("/diet/dietStep6");
@@ -62,8 +77,8 @@ export default function DietStep1() {
           </label>
         ))}
       </div>
-      {errors.bodyFat && (
-        <p className="text-red-500 text-sm mt-2">{errors.bodyFat.message}</p>
+      {errors.exerciseTime && (
+        <p className="text-red-500 text-sm mt-2">{errors.exerciseTime.message}</p>
       )}
 
       <div className="mt-6 flex gap-4">

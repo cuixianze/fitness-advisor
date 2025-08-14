@@ -58,8 +58,8 @@ export default function DietStep1() {
           </label>
         ))}
       </div>
-      {errors.bodyFat && (
-        <p className="text-red-500 text-sm mt-2">{errors.bodyFat.message}</p>
+      {errors.lastExercise && (
+        <p className="text-red-500 text-sm mt-2">{errors.lastExercise.message}</p>
       )}
       <div className="mt-6 flex gap-4">
         <button

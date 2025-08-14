@@ -1,29 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { logout, onUserStateChange, auth } from "../api/firebase";
-import { onAuthStateChanged } from "firebase/auth";
 import "../css/header.css";
 
 export default function Header() {
-  const [user, setUser] = useState();
-  const loginNavigate = useNavigate();
-  const userInLogin = useNavigate();
-
-  const handleLoginClick = () => {
-    loginNavigate("/login");
-  };
-
-  useEffect(() => {
-    onUserStateChange(setUser);
-  }, []);
-
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userInLogin("/home");
-      }
-    });
-  }, []);
 
   return (
     <header className="header">
@@ -48,15 +27,6 @@ export default function Header() {
         </nav>
 
         <div className="header-right">
-          {user ? (
-            <button onClick={logout} className="btn">
-              Logout
-            </button>
-          ) : (
-            <button onClick={handleLoginClick} className="btn">
-              login
-            </button>
-          )}
         </div>
     </header>
   );

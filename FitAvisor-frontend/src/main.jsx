@@ -5,7 +5,6 @@ import { createBrowserRouter, Route, Routes } from "react-router";
 import Error from "./page/Error";
 import Home from "./page/Home";
 import { RouterProvider } from "react-router-dom";
-import LoginButton from "./page/LoginButton";
 import Diet from "./components/Diet/Diet";
 import DietStep1 from "./components/Diet/DietStep1";
 import DietStep2 from "./components/Diet/DietStep2";
@@ -24,7 +23,6 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "home", element: <Home /> },
-      { path: "login", element: <LoginButton /> },
       { path: "dietLastStep", element: <DietLastStep /> },
       {
         path: "diet",
