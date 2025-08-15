@@ -60,7 +60,7 @@ export default function ProgressBar() {
                     : "bg-white border border-gray-300 text-gray-500"
                 }`}
             >
-              {index < currentStepIndex ? "✔" : index + 1}
+              {index < currentStepIndex ? <CheckIcon className="w-7 h-7" /> : index + 1}
             </div>
 
             {/* Step name */}
@@ -79,5 +79,25 @@ export default function ProgressBar() {
         ))}
       </div>
     </div>
+  );
+}
+
+export function CheckIcon({ className }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none" 
+      viewBox="0 0 24 24"
+      // 선 굵기를 3으로 설정해 두껍고 선명하게 만듭니다.
+      strokeWidth={4} 
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4.5 12.75l6 6 9-13.5"
+      />
+    </svg>
   );
 }

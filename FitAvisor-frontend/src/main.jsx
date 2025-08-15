@@ -14,6 +14,7 @@ import DietStep5 from "./components/Diet/DietStep5";
 import DietStep6 from "./components/Diet/DietStep6";
 import DietStep7 from "./components/Diet/DietStep7";
 import DietLastStep from "./page/DietLastStep";
+import Login from "./page/Login";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "home", element: <Home /> },
       { path: "dietLastStep", element: <DietLastStep /> },
+      { path: "login", element: <Login /> },
       {
         path: "diet",
         element: <Diet />,
