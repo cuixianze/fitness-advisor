@@ -19,10 +19,19 @@ export default function DietStep7() {
   const navigate = useNavigate();
 
   const onSubmit = async (formData) => {
+    const token = localStorage.getItem("token");
     // 2) formData를 post로 보내고 로컬스토리지에 저장된 데이터는 삭제하고 페이지 이동 로직
     try {
       console.log("try 블록진입");
-      const res = await axios.post(`http://localhost:8080/workouts/`, formData);
+      const res = await axios.get(
+        'http://50.16.24.17:8080/api/ai/feedback?userId=u-12345',
+        // formData,
+        // {
+        //   headers: {
+        //     Authorization: `Bearer ${token}`,
+        //   },
+        // } 
+      );
       console.log("사용자 데이터", res.data);
       localStorage.removeItem("saveFormData");
       console.log("로컬스토리지 삭제");
@@ -78,7 +87,9 @@ export default function DietStep7() {
         ))}
       </div>
       {errors.exerciseTime && (
-        <p className="text-red-500 text-sm mt-2">{errors.exerciseTime.message}</p>
+        <p className="text-red-500 text-sm mt-2">
+          {errors.exerciseTime.message}
+        </p>
       )}
 
       <div className="mt-6 flex gap-4">

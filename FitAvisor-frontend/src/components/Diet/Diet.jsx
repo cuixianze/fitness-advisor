@@ -6,6 +6,7 @@ import { useEffect } from "react";
 export default function Diet(nextPath = String) {
   const saveFormData = JSON.parse(localStorage.getItem("saveFormData"));
 
+
   const dietStep = useForm({
     defaultValues: saveFormData || {
       gender: "",
