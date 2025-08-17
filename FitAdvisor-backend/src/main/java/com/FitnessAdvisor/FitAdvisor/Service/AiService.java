@@ -5,22 +5,27 @@ import com.FitnessAdvisor.FitAdvisor.Repo.SurveyResultRepository;
 import com.FitnessAdvisor.FitAdvisor.Web.dto.AIFeedbackResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.Region;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class AiService {
@@ -28,20 +33,16 @@ public class AiService {
     private final SurveyResultRepository surveyResultRepository;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+    private final AwsCredentialsProvider credentialsProvider;
 
     @Value("${aws.region:us-east-1}")
     private String region;
-
-    @Value("${aws.access-key-id:}")
-    private String accessKeyId;
-
-    @Value("${aws.secret-access-key:}")
-    private String secretAccessKey;
 
     public AiService(SurveyResultRepository surveyResultRepository) {
         this.surveyResultRepository = surveyResultRepository;
         this.webClient = WebClient.builder().build();
         this.objectMapper = new ObjectMapper();
+        this.credentialsProvider = DefaultCredentialsProvider.builder().build();
     }
 
     public AIFeedbackResponse generateFeedbackAndRoutine(String userId) {
@@ -54,7 +55,8 @@ public class AiService {
             String aiResponse = callBedrock(prompt);
             return parseAiResponse(latest, aiResponse);
         } catch (Exception e) {
-            // Fallback to hardcoded response if AI call fails
+            System.err.println("--- AI 피드백 생성 실패 ---");
+            e.printStackTrace();
             return generateFallbackResponse(latest);
         }
     }
@@ -93,47 +95,43 @@ public class AiService {
 
     private String callBedrock(String prompt) throws Exception {
         String modelId = "anthropic.claude-3-sonnet-20240229-v1:0";
-        String bedrockUrl = String.format("https://bedrock-runtime.%s.amazonaws.com/invoke", region);
+        String bedrockUrl = String.format("https://bedrock-runtime.%s.amazonaws.com/model/%s/invoke", region, modelId);
+
+        ObjectNode requestBodyJson = objectMapper.createObjectNode();
+        requestBodyJson.put("anthropic_version", "bedrock-2023-05-31");
+        requestBodyJson.put("max_tokens", 1000);
+
+        ArrayNode messagesArray = objectMapper.createArrayNode();
+        ObjectNode userMessage = objectMapper.createObjectNode();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+        messagesArray.add(userMessage);
+
+        requestBodyJson.set("messages", messagesArray);
+
+        String requestBody = objectMapper.writeValueAsString(requestBodyJson);
         
-        String requestBody = String.format("""
-            {
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 1000,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": "%s"
-                    }
-                ]
-            }
-            """, prompt.replace("\"", "\\\""));
+        System.out.println("--- Bedrock API 호출 시작 ---");
+        System.out.println("요청 URL: " + bedrockUrl);
+        System.out.println("요청 본문: " + requestBody);
 
-        // For now, return mock response if credentials are not configured
-        if (accessKeyId.isEmpty() || secretAccessKey.isEmpty()) {
-            return """
-                {
-                    "feedback": "현재 경험 수준과 목표를 고려한 맞춤형 피드백입니다. 부상 이력이 있으니 워밍업과 스트레칭을 충분히 하시고, 점진적으로 강도를 높여가세요.",
-                    "routine": [
-                        "Day 1: 상체(푸시) — 벤치프레스 3x8, 숄더프레스 3x10, 트라이셉스 익스텐션 3x12",
-                        "Day 2: 하체 — 스쿼트 3x8, 루마니안 데드리프트 3x10, 레그컬 3x12",
-                        "Day 3: 상체(풀) — 랫풀다운 3x10, 바벨로우 3x8, 이지바 컬 3x12",
-                        "Day 4: 코어 & 컨디셔닝 — 플랭크 3x30초, 레그레이즈 3x15, 20분 인터벌"
-                    ]
-                }
-                """;
-        }
-
-        // Implement AWS Signature v4 signing for Bedrock REST API
         try {
-            AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+            System.out.println("1. 자격 증명 불러오기...");
+            AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();
+            System.out.println("   - 자격 증명 성공: " + awsCredentials.accessKeyId().substring(0, 4) + "...");
+
+            System.out.println("2. 요청 서명...");
             Aws4Signer signer = Aws4Signer.create();
             
+            InputStream contentStream = new ByteArrayInputStream(requestBody.getBytes(StandardCharsets.UTF_8));
+
             SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder()
                     .method(SdkHttpMethod.POST)
                     .uri(URI.create(bedrockUrl))
                     .putHeader("Content-Type", "application/json")
-                    .putHeader("X-Amz-Target", "com.amazonaws.bedrock.runtime.model.InvokeModel")
-                    .putHeader("X-Amz-Bedrock-Model-Id", modelId);
+                    .putHeader("X-Amz-Target", "AmazonBedrock.InvokeModel")
+                    .putHeader("X-Amz-Bedrock-Model-Id", modelId)
+                    .contentStreamProvider(() -> contentStream);
 
             SdkHttpFullRequest request = requestBuilder.build();
             
@@ -144,40 +142,60 @@ public class AiService {
                     .build();
 
             SdkHttpFullRequest signedRequest = signer.sign(request, signerParams);
-            
-            // Add the signed headers to the request
+            System.out.println("   - 요청 서명 성공");
+
+            System.out.println("3. WebClient로 HTTP 요청 전송...");
+            System.out.println("요청 헤더: " + signedRequest.headers());
+
             String response = webClient.post()
                     .uri(bedrockUrl)
                     .headers(headers -> {
-                        headers.putAll(signedRequest.headers());
-                        headers.set("Content-Type", "application/json");
+                        signedRequest.headers().forEach(headers::put);
                     })
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
+            System.out.println("   - HTTP 요청 성공. 응답 수신.");
+            System.out.println("--- Bedrock API 호출 종료 ---");
+            System.out.println("AI 응답: " + response);
 
             JsonNode jsonResponse = objectMapper.readTree(response);
-            return jsonResponse.get("content").get(0).get("text").asText();
+            
+            JsonNode outputNode = jsonResponse.get("Output");
+            if (outputNode != null && outputNode.has("__type")) {
+                throw new Exception("Bedrock API 호출 오류: " + outputNode.get("__type").asText());
+            }
+
+            JsonNode contentNode = jsonResponse.get("content");
+            
+            if (contentNode == null || !contentNode.isArray() || contentNode.size() == 0) {
+                throw new Exception("Bedrock 응답에 'content' 필드가 없거나 비어 있습니다: " + response);
+            }
+            
+            JsonNode firstContentNode = contentNode.get(0);
+            if (firstContentNode == null) {
+                throw new Exception("Bedrock 응답의 'content' 배열이 비어 있습니다: " + response);
+            }
+
+            JsonNode textNode = firstContentNode.get("text");
+            if (textNode == null) {
+                throw new Exception("Bedrock 응답의 'content' 필드에 'text' 필드가 없습니다: " + response);
+            }
+            
+            return textNode.asText();
             
         } catch (Exception e) {
-            // Fallback to mock response if AWS call fails
-            return """
-                {
-                    "feedback": "AWS Bedrock 호출 중 오류가 발생했습니다: %s",
-                    "routine": [
-                        "Day 1: 상체(푸시) — 벤치프레스 3x8, 숄더프레스 3x10, 트라이셉스 익스텐션 3x12",
-                        "Day 2: 하체 — 스쿼트 3x8, 루마니안 데드리프트 3x10, 레그컬 3x12",
-                        "Day 3: 상체(풀) — 랫풀다운 3x10, 바벨로우 3x8, 이지바 컬 3x12",
-                        "Day 4: 코어 & 컨디셔닝 — 플랭크 3x30초, 레그레이즈 3x15, 20분 인터벌"
-                    ]
-                }
-                """.formatted(e.getMessage());
+            System.err.println("--- Bedrock API 호출 실패 ---");
+            System.err.println("오류 메시지: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("----------------------------");
+
+            throw e;
         }
     }
 
     private AIFeedbackResponse parseAiResponse(SurveyResult survey, String aiResponse) throws Exception {
-        // Extract JSON from AI response
         int start = aiResponse.indexOf("{");
         int end = aiResponse.lastIndexOf("}") + 1;
         if (start == -1 || end == 0) {
@@ -218,5 +236,3 @@ public class AiService {
         );
     }
 }
-
-
