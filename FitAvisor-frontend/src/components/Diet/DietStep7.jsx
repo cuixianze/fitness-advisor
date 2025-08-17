@@ -22,7 +22,7 @@ export default function DietStep7() {
     // 2) formData를 post로 보내고 로컬스토리지에 저장된 데이터는 삭제하고 페이지 이동 로직
     try {
       console.log("try 블록진입");
-      const res = await axios.post(`http://localhost:8080/workouts/`, formData);
+      const res = await axios.post(`http://localhost:8080/workouts`, formData);
       console.log("사용자 데이터", res.data);
       localStorage.removeItem("saveFormData");
       console.log("로컬스토리지 삭제");
