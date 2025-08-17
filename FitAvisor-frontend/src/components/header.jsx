@@ -33,7 +33,6 @@ export default function Header() {
         </Link>
       </nav>
 
-  
       <div>
         <LoginBtn />
       </div>
