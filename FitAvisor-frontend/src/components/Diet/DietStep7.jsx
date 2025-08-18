@@ -1,31 +1,23 @@
 import { useFormContext } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { exerciseTimeOptions } from "../../constants/formData";
+import { submitWorkoutData } from "../../api/workoutApi.js";
+import SurveyStepLayout from "../common/SurveyStepLayout";
+import FormInput from "../common/FormInput";
+
 
 export default function DietStep7() {
-  const exerciseTime = [
-    { id: "dietStepId1", label: "30분", value: "30분" },
-    { id: "dietStepId2", label: "30분~1시간", value: "30분~1시간" },
-    { id: "dietStepId3", label: "1시간 이상", value: "1시간 이상" },
-  ];
-
   const {
     register,
-    handleSubmit,
     reset,
-    formState: { errors },
   } = useFormContext();
 
   const navigate = useNavigate();
 
   const onSubmit = async (formData) => {
-    // 2) formData를 post로 보내고 로컬스토리지에 저장된 데이터는 삭제하고 페이지 이동 로직
     try {
-      console.log("try 블록진입");
-      const res = await axios.post(`http://localhost:8080/workouts`, formData);
-      console.log("사용자 데이터", res.data);
+      const responseData = await submitWorkoutData(formData);
       localStorage.removeItem("saveFormData");
-      console.log("로컬스토리지 삭제");
       reset({
         gender: "",
         exerciseNumber: "",
@@ -35,67 +27,31 @@ export default function DietStep7() {
         exercisePart: "",
         exerciseTime: "",
       });
-      console.log("rhf 초기화");
-      navigate("/dietLastStep", { state: { mock: res.data } });
-      console.log("페이지 이동");
+      navigate("/dietLastStep", { state: { mock: responseData } });
     } catch (err) {
-      console.error("NotFound!!!", err);
+      console.error("제출 실패:", err);
     }
   };
-
-  const handlePrevClick = () => {
-    navigate("/diet/dietStep6");
-  };
-
-  const onError = (errors) => {
-    console.log(errors);
-  };
-
+  
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit, onError)}
-      className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow"
-    >
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-        오늘 운동할 수 있는 시간은 어떻게 되사나요?
-      </h1>
-      <div className="space-y-4">
-        {exerciseTime.map(({ label, value, id }) => (
-          <label
-            key={id}
-            className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-400 transition-colors"
-          >
-            <input
-              type="radio"
-              value={value}
-              {...register("exerciseTime", {
-                required: "금일 운동 가능 시간을 선택해주세요",
-              })}
-              className="form-radio text-blue-500 accent-blue-500 mr-3"
-            />
-            <span className="text-gray-700">{label}</span>
-          </label>
-        ))}
-      </div>
-      {errors.exerciseTime && (
-        <p className="text-red-500 text-sm mt-2">{errors.exerciseTime.message}</p>
-      )}
-
-      <div className="mt-6 flex gap-4">
-        <button
-          type="submit"
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
-        >
-          제출
-        </button>
-        <button
-          type="button"
-          onClick={handlePrevClick}
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
-        >
-          previous
-        </button>
-      </div>
-    </form>
+    <SurveyStepLayout
+         title="운동 가능 시간은 어떻게 되사나요??"
+         fieldName="lastExercise"  
+         onValid={onSubmit}
+         onPrevClick= {() => navigate("/diet/dietStep6")}
+         isFirstStep={true}
+       >
+         {/* 내부 흐름 2: genderOptions 배열을 순회하며 각 항목을 FormInputOption 부품으로 만듭니다. */}
+         {exerciseTimeOptions.map((option) => (
+           <FormInput
+             key={option.id}
+             type="radio" // 이 단계는 라디오 버튼을 사용합니다.
+             {...option} // id, label, value를 한 번에 전달
+             register={register}
+             fieldName="lastExerciseOptions"
+             validationRules={{ required: "운동 가능 시간을 선택해주세요" }}
+           />
+         ))}
+       </SurveyStepLayout>
   );
 }

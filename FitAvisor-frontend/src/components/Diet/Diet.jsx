@@ -16,7 +16,7 @@ export default function Diet(nextPath = String) {
       exercisePart: "",
       exerciseTime: "",
     },
-  });
+  }); 
 
   const watchFormData = dietStep.watch();
 

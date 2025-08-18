@@ -1,81 +1,35 @@
-import { useFormContext } from "react-hook-form";
+
 import { useNavigate } from "react-router-dom";
+import { useFormContext } from "react-hook-form";
+import { exerciseLevelOptions } from "../../constants/formData";
+import SurveyStepLayout from "../common/SurveyStepLayout";
+import FormInput from "../common/FormInput";
 
 export default function DietStep1() {
-  const exerciseLevel = [
-    { id: "dietStepId1", label: "왕초보, 입문", value: "초보자, 입문자" },
-    { id: "dietStepId2", label: "초보", value: "초보" },
-    { id: "dietStepId3", label: "중급", value: "중급" },
-    { id: "dietStepId4", label: "고급", value: "고급" },
-    { id: "dietStepId5", label: "전문가", value: "전문가" },
-  ];
+  const navigate = useNavigate();
+  const { register } = useFormContext();
 
-  const nextDietStep2 = useNavigate();
-
-  const prevStep = useNavigate();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useFormContext();
-
-  const onValid = (data) => {
-    nextDietStep2("/diet/dietStep6");
-  };
-
-  const handlePrevClick = () => {
-    prevStep("/diet/dietStep4");
-  };
-
-  const onError = (errors) => {
-    console.log(errors);
-  };
-
+  // 내부 흐름 1: 이 컴포넌트는 SurveyStepLayout이라는 '틀'을 사용합니다.
+  // 필요한 정보(title, fieldName 등)를 props로 전달합니다.
   return (
-    <form
-      onSubmit={handleSubmit(onValid, onError)}
-      className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow"
+    <SurveyStepLayout
+      title="운동 경력이 어떻게 되사나요??"
+      fieldName="lastExercise"  
+      onValid={() => navigate("/diet/dietStep6")}
+      onPrevClick= {() => navigate("/diet/dietStep4")}
+      isFirstStep={false}
     >
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-        본인의 운동 수준은 어떻게 되시나요?
-      </h1>
-      <div className="space-y-4">
-        {exerciseLevel.map(({ label, value, id }) => (
-          <label
-            key={id}
-            className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-400 transition-colors"
-          >
-            <input
-              type="radio"
-              value={value}
-              {...register("exerciseLevel", {
-                required: "본인의 운동 수준을 선택해주세요",
-              })}
-              className="form-radio text-blue-500 accent-blue-500 mr-3"
-            />
-            <span className="text-gray-700">{label}</span>
-          </label>
-        ))}
-      </div>
-      {errors.exerciseLevel && (
-        <p className="text-red-500 text-sm mt-2">{errors.exerciseLevel.message}</p>
-      )}
-      <div className="mt-6 flex gap-4">
-        <button
-          type="submit"
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
-        >
-          next
-        </button>
-        <button
-          type="button"
-          onClick={handlePrevClick}
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
-        >
-          previous
-        </button>
-      </div>
-    </form>
+      {/* 내부 흐름 2: genderOptions 배열을 순회하며 각 항목을 FormInputOption 부품으로 만듭니다. */}
+      {exerciseLevelOptions.map((option) => (
+        <FormInput
+          key={option.id}
+          type="radio" // 이 단계는 라디오 버튼을 사용합니다.
+          {...option} // id, label, value를 한 번에 전달
+          register={register}
+          fieldName="lastExerciseOptions"
+          validationRules={{ required: "운동 경력을 선택해주세요" }}
+        />
+      ))}
+    </SurveyStepLayout>
   );
 }

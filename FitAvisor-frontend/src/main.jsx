@@ -31,6 +31,7 @@ const router = createBrowserRouter([
         element: <Diet />,
         children: [
           { index: true, element: <DietStep1 /> },
+          { path: "dietStep1", element: <DietStep1 /> }, 
           { path: "dietStep2", element: <DietStep2 /> },
           { path: "dietStep3", element: <DietStep3 /> },
           { path: "dietStep4", element: <DietStep4 /> },

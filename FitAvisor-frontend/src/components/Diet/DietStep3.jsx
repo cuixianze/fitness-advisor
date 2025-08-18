@@ -1,84 +1,35 @@
-import { useFormContext } from "react-hook-form";
+
 import { useNavigate } from "react-router-dom";
+import { useFormContext } from "react-hook-form";
+import { goToExerciseOptions } from "../../constants/formData";
+import SurveyStepLayout from "../common/SurveyStepLayout";
+import FormInput from "../common/FormInput";
 
 export default function DietStep1() {
-  const goToExercise = [
-    { id: "dietStepId1", label: "월요일", value: "월요일" },
-    { id: "dietStepId2", label: "화요일", value: "화요일" },
-    { id: "dietStepId3", label: "수요일", value: "수요일" },
-    { id: "dietStepId4", label: "목요일", value: "목요일" },
-    { id: "dietStepId5", label: "금요일", value: "금요일" },
-    { id: "dietStepId6", label: "토요일", value: "토요일" },
-    { id: "dietStepId7", label: "일요일", value: "일요일" },
-    { id: "dietStepId8", label: "X", value: "X" },
-  ];
+  const navigate = useNavigate();
+  const { register } = useFormContext();
 
-  const nextDietStep2 = useNavigate();
-
-  const prevStep = useNavigate();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useFormContext();
-
-  const onValid = (data) => {
-    nextDietStep2("/diet/dietStep4");
-  };
-
-  const handlePrevClick = () => {
-    prevStep("/diet/dietStep2");
-  };
-
-  const onError = (errors) => {
-    console.log(errors);
-  };
-
+  // 내부 흐름 1: 이 컴포넌트는 SurveyStepLayout이라는 '틀'을 사용합니다.
+  // 필요한 정보(title, fieldName 등)를 props로 전달합니다.
   return (
-    <form
-      onSubmit={handleSubmit(onValid, onError)}
-      className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow"
+    <SurveyStepLayout
+      title="이번주에 운동을 언제 가주셨나요??"
+      fieldName="goToExercise"  
+      onValid={() => navigate("/diet/dietStep4")}
+      onPrevClick= {() => navigate("/diet/dietStep2")}
+      isFirstStep={false}
     >
-      <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-        이번주에는 운동을 언제 언제 가셨나요?
-      </h1>
-      <div className="space-y-4">
-        {goToExercise.map(({ label, value, id }) => (
-          <label
-            key={id}
-            className="flex items-center p-3 border border-gray-300 rounded-lg hover:border-blue-400 transition-colors"
-          >
-            <input
-              type="checkbox"
-              value={value}
-              {...register("goToExercise", {
-                required: "이번주에 운동을 언제 언제 가셨는지 선택해주세요",
-              })}
-              className="form-radio text-blue-500 accent-blue-500 mr-3"
-            />
-            <span className="text-gray-700">{label}</span>
-          </label>
-        ))}
-      </div>
-      {errors.goToExercise && (
-        <p className="text-red-500 text-sm mt-2">{errors.goToExercise.message}</p>
-      )}
-      <div className="mt-6 flex gap-4">
-        <button
-          type="submit"
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
-        >
-          next
-        </button>
-        <button
-          type="button"
-          onClick={handlePrevClick}
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-semibold transition-colors"
-        >
-          previous
-        </button>
-      </div>
-    </form>
+      {/* 내부 흐름 2: genderOptions 배열을 순회하며 각 항목을 FormInputOption 부품으로 만듭니다. */}
+      {goToExerciseOptions.map((option) => (
+        <FormInput
+          key={option.id}
+          type="radio" // 이 단계는 라디오 버튼을 사용합니다.
+          {...option} // id, label, value를 한 번에 전달
+          register={register}
+          fieldName="goToExercise"
+          validationRules={{ required: "이번주에 운동을 언제 가주셧는지 선택해주세요" }}
+        />
+      ))}
+    </SurveyStepLayout>
   );
 }
