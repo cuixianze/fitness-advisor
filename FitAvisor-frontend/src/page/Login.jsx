@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CiDumbbell } from 'react-icons/ci';
 import { FcGoogle } from 'react-icons/fc'; // 구글 아이콘
 import { RiKakaoTalkFill } from 'react-icons/ri'; // 카카오 아이콘
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState("");

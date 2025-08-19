@@ -30,7 +30,7 @@ export default function SurveyStepLayout({ title, fieldName, children, onValid, 
       <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">{title}</h1>
       
       <div className="space-y-4">
-        {children} {/* DietStep 파일에서 전달한 FormInputOption들이 여기에 렌더링됩니다. */}
+        {children} 
       </div>
 
       {/* 해당 필드에 에러가 있으면 메시지를 표시합니다. */}
